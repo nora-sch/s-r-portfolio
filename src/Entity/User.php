@@ -7,53 +7,91 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ * itemOperations={"get"},
+ * collectionOperations={"post"},
+ * normalizationContext={"groups"={"read"}})
  * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @UniqueEntity("username")
+ * @UniqueEntity("email")
+ * 
  */
 class User implements UserInterface
 {
     /**
      * @ORM\Id
-     * @ORM\GeneratedValue
+     * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"read"})
+     * @Assert\NotBlank()
+     * @Assert\Length(min=6, max=255)
      */
     private $username;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank()
+     * @Assert\Regex(
+     *  pattern="/(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=_]).{7,}/",
+     *  message="Password must be seven characters long and contain at least one digit, one uppercase letter, one lowercase letter and at least one of these special characters @#$%^&+=_")
      */
     private $password;
 
     /**
+     * @Assert\NotBlank()
+     * @Assert\Expression(
+     * "this.getPassword()===this.getRetypedPassword()",
+     * message="Passwords does not match"
+     * )
+     */
+    private $retypedPassword;
+
+    /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"read"})
+     * @Assert\NotBlank()
+     * @Assert\Length(min=2, max=255)
      */
     private $firstname;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"read"})
+     * @Assert\NotBlank()
+     * @Assert\Length(min=2, max=255)
      */
     private $lastname;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"read"})
+     * @Assert\NotBlank()
+     * @Assert\Email()
+     * @Assert\Length(min=6, max=255)
      */
     private $email;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\BlogPost", mappedBy="author")
+     * @Groups({"read"})
      */
     private $posts;
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Comment", mappedBy="author")
+     * @Groups({"read"})
      */
     private $comments;
 
@@ -143,20 +181,21 @@ class User implements UserInterface
         return $this->comments;
     }
 
-/**
- * Returns the roles granted to the user.
- * <code>
- * public function getRoles()
- * {
- * return array('ROLE_USER');
- * }
- * </code>
- * Alternatively, the roles might be stored on a ``roles`` property, 
- * and populated in any number of different ways when the user object is created
- * @return (Rolestring)[] The user roles
- */
-    public function getRoles(){
-return ['ROLE_USER'];
+    /**
+     * Returns the roles granted to the user.
+     * <code>
+     * public function getRoles()
+     * {
+     * return array('ROLE_USER');
+     * }
+     * </code>
+     * Alternatively, the roles might be stored on a ``roles`` property, 
+     * and populated in any number of different ways when the user object is created
+     * @return (Rolestring)[] The user roles
+     */
+    public function getRoles()
+    {
+        return ['ROLE_USER'];
     }
 
     /**
@@ -164,7 +203,8 @@ return ['ROLE_USER'];
      * This can return null if the password was not encoded using a salt.
      * @return string|null The salt
      */
-    public function getSalt(){
+    public function getSalt()
+    {
         return null;
     }
 
@@ -173,10 +213,20 @@ return ['ROLE_USER'];
      * This is important if, at any given point, sensitive information like
      * the plain-text password is stored on this object
      */
-    public function eraseCredentials(){
-         //implement ereaseCredentials() method
+    public function eraseCredentials()
+    {
+        //implement ereaseCredentials() method
     }
-    public function getUserIdentifier(){
-         //implement getUserIdentifier() method
+    public function getUserIdentifier()
+    {
+        //implement getUserIdentifier() method
+    }
+    public function getRetypedPassword()
+    {
+        return $this->retypedPassword;
+    }
+    public function setRetypedPassword($retypedPassword): void
+    {
+        $this->retypedPassword = $retypedPassword;
     }
 }

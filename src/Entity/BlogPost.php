@@ -11,7 +11,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * @ORM\Entity(repositoryClass=BlogPostRepository::class)
- * @ApiResource()
+ * @ApiResource(
+ * itemOperations={"get"},
+ * collectionOperations={"get"})
  */
 class BlogPost
 {
