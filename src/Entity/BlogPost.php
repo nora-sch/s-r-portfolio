@@ -7,8 +7,12 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\BlogPostRepository;
 use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
+use App\Entity\PublishedDateEntityInterface;
+use App\Entity\AuthoredEntityInterface;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ORM\Entity(repositoryClass=BlogPostRepository::class)
@@ -22,10 +26,13 @@ use Symfony\Component\Validator\Constraints as Assert;
  *      "post"={
  *          "access_control"="is_granted('IS_AUTHENTICATED_FULLY')"
  *      }
+ *  },
+ *  denormalizationContext={
+ *      "groups"={"post"}
  *  }
  * )
  */
-class BlogPost
+class BlogPost implements AuthoredEntityInterface, PublishedDateEntityInterface
 {
     /**
      * @ORM\Id
@@ -37,13 +44,12 @@ class BlogPost
     /**
      * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank()
+     * @Groups({"post"})
      */
     private $title;
 
     /**
      * @ORM\Column(type="datetime")
-     * @Assert\NotBlank()
-     * @Assert\Type("datetime")
      */
     private $published;
 
@@ -51,6 +57,7 @@ class BlogPost
      * @ORM\Column(type="text")
      * @Assert\NotBlank()
      * @Assert\Length(min=20)
+     * @Groups({"post"})
      */
     private $content;
 
@@ -62,19 +69,20 @@ class BlogPost
 
     /**
      * @ORM\Column(type="datetime")
-     * @Assert\NotBlank()
-     * @Assert\Type("datetime")
+     * @Groups({"post"})
      */
     private $updated;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"post"})
      */
     private $image;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     *  @Assert\NotBlank()
+     * @Assert\NotBlank()
+     * @Groups({"post"})
      */
     private $slug;
     /**
@@ -114,7 +122,7 @@ class BlogPost
         return $this->published;
     }
 
-    public function setPublished(\DateTimeInterface $published): self
+    public function setPublished(\DateTimeInterface $published): PublishedDateEntityInterface
     {
         $this->published = $published;
 
@@ -140,9 +148,9 @@ class BlogPost
         return $this->author;
     }
     /**
-     * @param User $author
+     * @param UserInterface $author
      */
-    public function setAuthor(User $author): self
+    public function setAuthor(UserInterface $author): AuthoredEntityInterface
     {
         $this->author = $author;
         return $this;
