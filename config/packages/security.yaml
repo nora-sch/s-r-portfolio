@@ -50,3 +50,7 @@ security:
         # - { path: ^/api,        roles: IS_AUTHENTICATED_FULLY }
 
          - { path: ^/api,        roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    role_hierarchy:
+        ROLE_WRITER: ROLE_COMMENTATOR
+        ROLE_ADMIN: [ROLE_WRITER, ROLE_EDITOR]
+        ROLE_SUPERADMIN: ROLE_ADMIN

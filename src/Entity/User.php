@@ -39,6 +39,15 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class User implements UserInterface
 {
+
+    const ROLE_COMMENTATOR = "ROLE_COMMENTATOR";
+    const ROLE_WRITER = "ROLE_WRITER";
+    const ROLE_EDITOR = "ROLE_EDITOR";
+    const ROLE_ADMIN = "ROLE_ADMIN";
+    const ROLE_SUPERADMIN = "ROLE_SUPERADMIN";
+
+    const DEFAULT_ROLES = [self::ROLE_COMMENTATOR];
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue()
@@ -93,7 +102,7 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"post", "put"})
+     * @Groups({"post", "put", "get-admin", "get-owner"})
      * @Assert\NotBlank()
      * @Assert\Email()
      * @Assert\Length(min=6, max=255)
@@ -111,10 +120,17 @@ class User implements UserInterface
      */
     private $comments;
 
+    /**
+     * @ORM\Column(type="simple_array", length=200) 
+      * @Groups({"get-admin", "get-owner"})
+     */
+    private $roles;
+
     public function __construct()
     {
         $this->posts  = new ArrayCollection();
         $this->comments = new ArrayCollection();
+        $this->roles = self::DEFAULT_ROLES;
     }
 
     public function getId(): ?int
@@ -197,23 +213,15 @@ class User implements UserInterface
         return $this->comments;
     }
 
-    /**
-     * Returns the roles granted to the user.
-     * <code>
-     * public function getRoles()
-     * {
-     * return array('ROLE_USER');
-     * }
-     * </code>
-     * Alternatively, the roles might be stored on a ``roles`` property, 
-     * and populated in any number of different ways when the user object is created
-     * @return (Rolestring)[] The user roles
-     */
-    public function getRoles()
+    public function getRoles(): array
     {
-        return ['ROLE_USER'];
+        return $this->roles;
     }
 
+    public function setRoles(array $roles)
+    {
+        $this->roles = $roles;
+    }
     /**
      * Returns the salt that was originally used to encode the password.
      * This can return null if the password was not encoded using a salt.
