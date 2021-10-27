@@ -69,7 +69,7 @@ class AppFixtures extends Fixture
     /**
      * @var UserPasswordHasherInterface
      */
-    private $paswordEncoder;
+        private $passwordHasher;
 
     /**
      * @var Faker\Factory
